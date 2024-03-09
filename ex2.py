@@ -26,19 +26,21 @@ def newtons_method(a, b, func, var='y'):
     return res
 
 
-def processing(t, t1, y0, temp, g, func):
-    res = []
+def processing(t, t1, y0, temp, func):
+    res = [y0]
+    t_0 = t
     while t < t1:
         t += temp
+        g = sympify(y0 + temp * func - symbols('y')).subs('t', t)
+        y0 = newtons_method(t_0, t1, g.subs('t', t))
         res.append(y0)
-        y0 = newtons_method(t0, t1, g)
-        g = sympify(y0 + temp * func - symbols('y'))
+        print(t, g)
     return res
 
 
 def temp_mass(t_0, t_1, temp):
     tmp = [t_0]
-    while t_0 < t_1 - temp:
+    while t_0 < t_1:
         t_0 += temp
         tmp.append(round(t_0, 6))
     return tmp
@@ -57,13 +59,10 @@ with open('inp3.txt', 'r') as file:
     y_0 = float(file.readline())
     answer = sympify(file.readline())
 
-    h = (5 * 0.2) / (T-t0)
-    g1 = sympify(y_0 + h * function - symbols('y'))
-    g2 = sympify(y_0 + h / 2 * function - symbols('y'))
-    ans_1 = processing(t0, T, y_0, h, g1, function)
-    ans_2 = processing(t0, T, y_0, h/2, g2, function)
-
+    h = ((T-t0) / 20)
+    ans_1 = processing(t0, T, y_0, h, function)
     print(ans_1)
+    ans_2 = processing(t0, T, y_0, h/2, function)
     print(ans_2)
     for i in range(len(ans_1)):
         print(f'{round(t0 + i * h, 1)}  |  y1({i}): {round(ans_1[i], 6)}  |  y2({i}): {round(ans_2[i], 6)}')
@@ -73,18 +72,28 @@ with open('inp3.txt', 'r') as file:
     answ1 = list(map(lambda t: answer.subs('t', t), tmp1))
     answ2 = list(map(lambda t: answer.subs('t', t), tmp2))
 
+    plt.plot(tmp1, ans_1, color='blue')
+    plt.plot(tmp2, ans_2, color='orange')
+    plt.plot(tmp1, answ1, color='red')
+    plt.xlabel('Time')
+    plt.ylabel('Values')
+
     plt.figure()
-    plt.plot(tmp1, ans_1, 'blue')
-    plt.plot(tmp2, ans_2, 'orange')
-    plt.plot(tmp1, answ1, 'red')
-    plt.show()
+    plt.text(0, 0.7, 'Function with h step', color='blue')
+    plt.text(0, 0.5, 'Function with h/2 step', color='orange')
+    plt.text(0, 0.3, 'Correct function', color='red')
 
     e1 = error_decision(ans_1, answ1)
     e2 = error_decision(ans_2, answ2)
 
     plt.figure()
+    plt.text(0, 0.7, 'Error function with h step', color='red')
+    plt.text(0, 0.5, 'Error function with h/2 step', color='blue')
+    plt.figure()
     plt.plot(range(0, len(e1)), e1, 'red')
-    plt.plot(range(0, len(e2)), e2, 'blue')
+    plt.plot(range(0, len(e1)), e2[:len(e1)], 'blue')
+    plt.xlabel('Steps')
+    plt.ylabel('Error values')
     plt.show()
 #погрешность вывести
 
